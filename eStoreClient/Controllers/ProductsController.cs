@@ -1,5 +1,7 @@
 ﻿using BusinessObject.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore;
 using System.Net.Http.Headers;
 
 namespace eStore.Controllers
@@ -25,6 +27,14 @@ namespace eStore.Controllers
                 products = response.Content.ReadFromJsonAsync<List<Product>>().Result;
             }
 
+            HttpResponseMessage response2 = await client.GetAsync(ProductApiUrl + "/GetCategories");
+            List<Category>? categories = new List<Category>();
+            if (response2.StatusCode == System.Net.HttpStatusCode.OK)
+            {
+                categories = response2.Content.ReadFromJsonAsync<List<Category>>().Result;
+            }
+            ViewData["CategoryId"] = new SelectList(categories, "CategoryId", "CategoryName");
+
             return View(products);
         }
 
@@ -45,7 +55,7 @@ namespace eStore.Controllers
             {
                 categories = response2.Content.ReadFromJsonAsync<List<Category>>().Result;
             }
-            ViewData["category"] = categories;
+            ViewData["CategoryId"] = new SelectList(categories, "CategoryId", "CategoryName");
             return View(product);
         }
 
@@ -58,7 +68,8 @@ namespace eStore.Controllers
             {
                 categories = response.Content.ReadFromJsonAsync<List<Category>>().Result;
             }
-            ViewData["category"] = categories;
+            ViewData["CategoryId"] = new SelectList(categories, "CategoryId", "CategoryName");
+
             return View();
         }
 
@@ -94,7 +105,7 @@ namespace eStore.Controllers
             {
                 categories = response2.Content.ReadFromJsonAsync<List<Category>>().Result;
             }
-            ViewData["category"] = categories;
+            ViewData["CategoryId"] = new SelectList(categories, "CategoryId", "CategoryName");
             return View(product);
         }
 

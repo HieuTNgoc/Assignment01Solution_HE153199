@@ -17,11 +17,14 @@ namespace BusinessObject.Models
         [Required]
         [StringLength(40)]
         public string ProductName { get; set; }
+        [Required]
         public double Weight { get; set; }
+        [Required]
         public decimal UnitPrice { get; set; }
+        [Required]
         public int? UnitsInStock { get; set; }
 
-        public virtual Category Category { get; set; } = null!;
+        public virtual Category? Category { get; set; } = null!;
         public virtual ICollection<OrderDetail> OrderDetails { get; set; }
     }
 }
