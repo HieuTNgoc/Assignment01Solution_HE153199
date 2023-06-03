@@ -6,157 +6,100 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using BusinessObject.Models;
+using System.Net.Http.Headers;
 
 namespace eStoreClient.Controllers
 {
     public class MembersController : Controller
     {
-        private readonly PRN231_AS1Context _context;
-
-        public MembersController(PRN231_AS1Context context)
+        private readonly HttpClient client = null;
+        private string MemberApiUrl = "";
+        public MembersController()
         {
-            _context = context;
+            client = new HttpClient();
+            var contentType = new MediaTypeWithQualityHeaderValue("application/json");
+            client.DefaultRequestHeaders.Accept.Add(contentType);
+            MemberApiUrl = "https://localhost:7211/api/Members";
         }
 
-        // GET: Members
         public async Task<IActionResult> Index()
         {
-            return _context.Members != null ?
-                        View(await _context.Members.ToListAsync()) :
-                        Problem("Entity set 'PRN231_AS1Context.Members'  is null.");
+            HttpResponseMessage response = await client.GetAsync(MemberApiUrl + "/GetMembers");
+            List<Member>? members = new List<Member>();
+            if (response.StatusCode == System.Net.HttpStatusCode.OK)
+            {
+                members = response.Content.ReadFromJsonAsync<List<Member>>().Result;
+            }
+            return View(members);
         }
 
-        // GET: Members/Details/5
-        public async Task<IActionResult> Details(int? id)
+        //GET: MembersController/Details/5
+        public async Task<IActionResult> Details(int id)
         {
-            if (id == null || _context.Members == null)
-            {
-                return NotFound();
-            }
+            HttpResponseMessage response = await client.GetAsync(MemberApiUrl + "/GetMemberById/" + id);
 
-            var member = await _context.Members
-                .FirstOrDefaultAsync(m => m.MemberId == id);
-            if (member == null)
+            Member member = new Member();
+            if (response.StatusCode == System.Net.HttpStatusCode.OK)
             {
-                return NotFound();
+                member = response.Content.ReadFromJsonAsync<Member>().Result;
             }
 
             return View(member);
         }
 
-        // GET: Members/Create
-        public IActionResult Create()
+        //GET: MembersController/Create
+        public async Task<IActionResult> Create()
         {
             return View();
         }
 
-        // POST: Members/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+        //POST: MembersController/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("MemberId,Email,CompanyName,City,Country,Password")] Member member)
+        public async Task<IActionResult> Create(Member p)
         {
             if (ModelState.IsValid)
             {
-                _context.Add(member);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+                HttpResponseMessage response = await client.PostAsJsonAsync(MemberApiUrl + "/PostMember", p);
+                if (response.IsSuccessStatusCode)
+                {
+                    return RedirectToAction("Index");
+                }
             }
-            return View(member);
+            return Redirect("Create");
         }
 
-        // GET: Members/Edit/5
-        public async Task<IActionResult> Edit(int? id)
+        //GET: MembersController/Edit/5
+        public async Task<IActionResult> Edit(int id)
         {
-            if (id == null || _context.Members == null)
+            HttpResponseMessage response = await client.GetAsync(MemberApiUrl + "/GetMemberById/" + id);
+            Member member = new Member();
+            if (response.StatusCode == System.Net.HttpStatusCode.OK)
             {
-                return NotFound();
+                member = response.Content.ReadFromJsonAsync<Member>().Result;
             }
 
-            var member = await _context.Members.FindAsync(id);
-            if (member == null)
-            {
-                return NotFound();
-            }
             return View(member);
         }
 
-        // POST: Members/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+        //POST: MembersController/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("MemberId,Email,CompanyName,City,Country,Password")] Member member)
+        public async Task<IActionResult> Edit(int id, Member p)
         {
-            if (id != member.MemberId)
-            {
-                return NotFound();
-            }
-
             if (ModelState.IsValid)
             {
-                try
-                {
-                    _context.Update(member);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!MemberExists(member.MemberId))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
-                return RedirectToAction(nameof(Index));
+                await client.PutAsJsonAsync(MemberApiUrl + "/UpdateMember/" + id, p);
+                return RedirectToAction("Index");
             }
-            return View(member);
+            return View(p);
         }
 
-        // GET: Members/Delete/5
-        public async Task<IActionResult> Delete(int? id)
+        //GET: MembersController/Delete/5
+        public async Task<IActionResult> Delete(int id)
         {
-            if (id == null || _context.Members == null)
-            {
-                return NotFound();
-            }
-
-            var member = await _context.Members
-                .FirstOrDefaultAsync(m => m.MemberId == id);
-            if (member == null)
-            {
-                return NotFound();
-            }
-
-            return View(member);
-        }
-
-        // POST: Members/Delete/5
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
-        {
-            if (_context.Members == null)
-            {
-                return Problem("Entity set 'PRN231_AS1Context.Members'  is null.");
-            }
-            var member = await _context.Members.FindAsync(id);
-            if (member != null)
-            {
-                _context.Members.Remove(member);
-            }
-
-            await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
-        }
-
-        private bool MemberExists(int id)
-        {
-            return (_context.Members?.Any(e => e.MemberId == id)).GetValueOrDefault();
+            await client.DeleteAsync(MemberApiUrl + "/DeleteMember/" + id);
+            return RedirectToAction("Index");
         }
     }
 }

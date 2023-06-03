@@ -27,7 +27,7 @@ namespace DataAccess.DAO
                 return instance;
             }
         }
-        public IEnumerable<Member> GetMembers()
+        public static List<Member> GetMembers()
         {
             List<Member> members;
             try

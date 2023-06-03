@@ -106,6 +106,7 @@ namespace eStore.Controllers
                 categories = response2.Content.ReadFromJsonAsync<List<Category>>().Result;
             }
             ViewData["CategoryId"] = new SelectList(categories, "CategoryId", "CategoryName");
+
             return View(product);
         }
 

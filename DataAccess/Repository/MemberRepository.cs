@@ -16,7 +16,7 @@ namespace DataAccess.Repository
 
         public Member GetMemberByID(int id) => MemberDAO.Instance.FindMemberById(id);
 
-        public IEnumerable<Member> GetMembers() => MemberDAO.Instance.GetMembers();
+        public List<Member> GetMembers() => MemberDAO.GetMembers();
 
         public void UpdateMember(Member m) => MemberDAO.Instance.UpdateMember(m);
     }
